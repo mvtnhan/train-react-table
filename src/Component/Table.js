@@ -2,10 +2,41 @@ import React from "react";
 import { useTable, useSortBy, useFilters, usePagination } from "react-table";
 import DefaultFilter from "./DefaultFilter";
 
-const Table = ({ columns, data }) => {
+const EditableCell = ({
+  value: initialValue,
+  row: { index },
+  column: { id },
+  updateMyData,
+}) => {
+  const [value, setValue] = React.useState(initialValue);
+
+  const onChange = (e) => {
+    setValue(e.target.value);
+  };
+
+  const onBlur = () => {
+    updateMyData(index, id, value);
+  };
+
+  React.useEffect(() => {
+    setValue(initialValue);
+  }, [initialValue]);
+
+  return (
+    <input
+      value={value}
+      onChange={onChange}
+      onBlur={onBlur}
+      style={{ border: "none" }}
+    />
+  );
+};
+
+const Table = ({ columns, data, updateMyData, skipPageReset }) => {
   const defaultColumn = React.useMemo(
     () => ({
       Filter: DefaultFilter,
+      Cell: EditableCell,
     }),
     []
   );
@@ -32,6 +63,8 @@ const Table = ({ columns, data }) => {
       data,
       defaultColumn,
       initialState: { pageIndex: 2 },
+      updateMyData,
+      autoResetPage: !skipPageReset,
     },
     useFilters,
     useSortBy,
